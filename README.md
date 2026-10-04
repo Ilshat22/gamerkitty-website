@@ -22,3 +22,8 @@ V5 launch notes:
 - Starter Pack signup uses EmailOctopus form `fa0e1b04-c038-11f1-b83d-8795b2d6c401`, configured to apply the `Starter Pack Lead` tag.
 - The PDF is delivered by the EmailOctopus automation. After deployment, point the delivery-email CTA to the final public PDF/page URL.
 - Guarantee and Privacy modals are launch drafts and should be reviewed/finalized before publishing.
+
+
+## V6.1
+- Improved EmailOctopus signup readability on the dark modal by placing the embedded form on a light, high-contrast surface.
+- Public Starter Pack asset remains at `assets/Gamer-Kitty-Viral-Short-Form-Starter-Pack.pdf`.

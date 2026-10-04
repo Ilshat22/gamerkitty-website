@@ -6,3 +6,11 @@ dialog h3{font-size:34px;letter-spacing:-.04em;margin:0 0 12px}dialog .modal-lea
 
 /* EmailOctopus Starter Pack signup */
 .emailoctopus-host{margin:24px 0 18px;min-height:86px;border:1px solid #2c3328;border-radius:12px;background:#090b08;padding:14px;overflow:hidden}.emailoctopus-host .form-loading{color:#7f877b;font-size:12px;text-align:center;padding:20px}.delivery-note{margin:14px 0 0;color:#747c71;font-size:11px;line-height:1.5;text-align:center}
+
+/* V6.1 — EmailOctopus readability fix */
+.emailoctopus-host{background:#f6f7f3;border:1px solid #343a31;border-radius:14px;padding:18px;overflow:hidden;color:#151812}
+.emailoctopus-host .form-loading{color:#5f675b!important;text-align:center;padding:10px;font-size:13px}
+.emailoctopus-host label,.emailoctopus-host p,.emailoctopus-host small,.emailoctopus-host span{color:#343a31!important}
+.emailoctopus-host a{color:#4d6b19!important}
+.emailoctopus-host input[type="checkbox"]{accent-color:var(--green)}
+.emailoctopus-host iframe{background:#f6f7f3!important;border-radius:10px}
