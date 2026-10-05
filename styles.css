@@ -14,3 +14,39 @@ dialog h3{font-size:34px;letter-spacing:-.04em;margin:0 0 12px}dialog .modal-lea
 .emailoctopus-host a{color:#4d6b19!important}
 .emailoctopus-host input[type="checkbox"]{accent-color:var(--green)}
 .emailoctopus-host iframe{background:#f6f7f3!important;border-radius:10px}
+
+
+/* V6.2 — mobile polish */
+.module.open .detail{max-height:2200px}
+@media(max-width:850px){
+  body{padding-bottom:92px}
+  .pipeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:520px;margin:0 auto}
+  .pipeline em{display:none}
+  .pipeline i{display:flex;align-items:center;justify-content:center;min-height:58px;width:100%;padding:14px 10px;border-radius:16px;font-size:12px;letter-spacing:.04em;background:linear-gradient(180deg,#11150f,#0b0e0a);box-shadow:inset 0 0 0 1px #182014}
+  .pipeline i:last-of-type{grid-column:1/-1;width:calc(50% - 6px);justify-self:center}
+  .module .detail{padding:0 12px 0 78px;max-height:0;overflow:hidden}
+  .module.open .detail{max-height:2400px;padding-bottom:28px}
+  .module .detail p,.module .detail li{font-size:14px;line-height:1.6}
+  .marquee{overflow-x:auto;overflow-y:hidden;margin:14px -22px;padding:0 22px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}
+  .marquee::-webkit-scrollbar{display:none}
+  .track,.reverse .track{animation:none;transform:none;gap:12px}
+  .review{width:min(82vw,330px);min-width:min(82vw,330px);scroll-snap-align:center}
+  .guarantee-card{justify-items:center;text-align:center}
+  .guarantee-card>div:not(.shield){width:100%}
+  .guarantee-card h2{text-align:center}
+  .guarantee-card p{margin-left:auto;margin-right:auto}
+  .shield{margin:0 auto}
+  .offer-price,.final .price{flex-direction:column;justify-content:center;align-items:center;gap:5px}
+  .offer-price s,.final .price s{order:0;font-size:16px;margin:0}
+  .offer-price strong,.final .price strong{order:1}
+  .offer-price b{order:2;margin-top:4px}
+  .final .price{margin-left:auto;margin-right:auto}
+  .offer-card,.final{padding-bottom:115px}
+}
+@media(max-width:480px){
+  .module button{grid-template-columns:76px 1fr auto;gap:8px;padding:24px 4px}
+  .module b{font-size:18px;line-height:1.15}
+  .module .detail{padding-left:88px;padding-right:4px}
+  .guarantee-card{padding:32px 20px}
+  .offer-price strong{font-size:60px}
+}
