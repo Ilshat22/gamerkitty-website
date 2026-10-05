@@ -59,16 +59,25 @@ window.addEventListener('mousemove',e=>{if(innerWidth<850)return;const art=docum
     marquee.addEventListener('pointerup',resumeSoon,{passive:true});
     marquee.addEventListener('pointercancel',resumeSoon,{passive:true});
     const track=marquee.querySelector('.track');
+    // Keep our own fractional position. Some mobile browsers round scrollLeft,
+    // which could leave the first (left-moving) row stuck at zero.
+    let pos=0;
     requestAnimationFrame(()=>{
-      if(direction<0) marquee.scrollLeft=Math.max(1,(track.scrollWidth-marquee.clientWidth)/2);
+      const half=track.scrollWidth/2;
+      pos=direction<0 ? Math.max(1,half) : 1;
+      marquee.scrollLeft=pos;
     });
     function tick(now){
       const dt=Math.min((now-last)/1000,.05); last=now;
       if(!paused && track){
-        marquee.scrollLeft += direction*speed*dt;
         const half=track.scrollWidth/2;
-        if(direction>0 && marquee.scrollLeft>=half) marquee.scrollLeft-=half;
-        if(direction<0 && marquee.scrollLeft<=1) marquee.scrollLeft+=half;
+        pos += direction*speed*dt;
+        if(direction>0 && pos>=half) pos-=half;
+        if(direction<0 && pos<=1) pos+=half;
+        marquee.scrollLeft=pos;
+      } else if(paused) {
+        // If the visitor swipes manually, resume from their new position.
+        pos=marquee.scrollLeft;
       }
       requestAnimationFrame(tick);
     }
