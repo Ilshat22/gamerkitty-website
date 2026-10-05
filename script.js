@@ -39,3 +39,39 @@ document.querySelector('#termsBtn').onclick=showGuarantee;
 document.querySelector('#guaranteeFooterBtn').onclick=showGuarantee;
 document.querySelector('#privacyBtn').onclick=()=>{body.innerHTML=`<div class="eyebrow">PRIVACY</div><h3>Privacy — Launch Draft</h3><p>If you request the free Starter Pack, your email address is submitted through EmailOctopus for delivery of the Starter Pack and related Gamer Kitty follow-up emails. You can unsubscribe using the link included in those emails.</p><p class="legal-note">This is still a launch draft, not a complete privacy policy. Before public launch, add your privacy contact details, retention information, and any other disclosures required for the way the site is actually operated.</p>`;modal.showModal()};
 window.addEventListener('mousemove',e=>{if(innerWidth<850)return;const art=document.querySelector('.hero-art img');const x=(e.clientX/innerWidth-.5)*10,y=(e.clientY/innerHeight-.5)*7;art.style.transform=`translate(${x}px,${y}px)`});
+
+// V6.3: on mobile, reviews keep moving automatically, pause while the visitor
+// swipes/drags them, then resume a moment after interaction ends.
+(function initMobileReviewMarquees(){
+  if(!window.matchMedia('(max-width: 850px)').matches) return;
+  document.querySelectorAll('.marquee').forEach((marquee,index)=>{
+    let paused=false;
+    let resumeTimer;
+    let last=performance.now();
+    const direction=marquee.classList.contains('reverse') ? -1 : 1;
+    const speed=22; // pixels per second
+    const pause=()=>{paused=true;clearTimeout(resumeTimer)};
+    const resumeSoon=()=>{clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>{paused=false;last=performance.now()},900)};
+    marquee.addEventListener('touchstart',pause,{passive:true});
+    marquee.addEventListener('touchend',resumeSoon,{passive:true});
+    marquee.addEventListener('touchcancel',resumeSoon,{passive:true});
+    marquee.addEventListener('pointerdown',pause,{passive:true});
+    marquee.addEventListener('pointerup',resumeSoon,{passive:true});
+    marquee.addEventListener('pointercancel',resumeSoon,{passive:true});
+    const track=marquee.querySelector('.track');
+    requestAnimationFrame(()=>{
+      if(direction<0) marquee.scrollLeft=Math.max(1,(track.scrollWidth-marquee.clientWidth)/2);
+    });
+    function tick(now){
+      const dt=Math.min((now-last)/1000,.05); last=now;
+      if(!paused && track){
+        marquee.scrollLeft += direction*speed*dt;
+        const half=track.scrollWidth/2;
+        if(direction>0 && marquee.scrollLeft>=half) marquee.scrollLeft-=half;
+        if(direction<0 && marquee.scrollLeft<=1) marquee.scrollLeft+=half;
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+})();

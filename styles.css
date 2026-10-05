@@ -50,3 +50,15 @@ dialog h3{font-size:34px;letter-spacing:-.04em;margin:0 0 12px}dialog .modal-lea
   .guarantee-card{padding:32px 20px}
   .offer-price strong{font-size:60px}
 }
+
+/* V6.3 mobile flow + touch-friendly auto reviews */
+@media(max-width:850px){
+  .system .pipeline{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:260px;margin:0 auto}
+  .system .pipeline i{width:100%;text-align:center;padding:15px 18px;border-radius:999px}
+  .system .pipeline em{display:block;font-size:0;line-height:1;height:24px}
+  .system .pipeline em::after{content:'↓';font-size:22px;color:var(--green);font-style:normal;font-weight:900}
+  .marquee{overflow-x:auto;overflow-y:hidden;margin:14px -22px;padding:0 22px;scroll-snap-type:none;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}
+  .marquee::-webkit-scrollbar{display:none}
+  .marquee .track,.marquee.reverse .track{animation:none!important;transform:none!important}
+  .review{width:min(82vw,330px);min-width:min(82vw,330px)}
+}
