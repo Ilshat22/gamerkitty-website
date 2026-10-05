@@ -62,3 +62,22 @@ dialog h3{font-size:34px;letter-spacing:-.04em;margin:0 0 12px}dialog .modal-lea
   .marquee .track,.marquee.reverse .track{animation:none!important;transform:none!important}
   .review{width:min(82vw,330px);min-width:min(82vw,330px)}
 }
+
+
+/* V6.5 — smooth GPU review marquees on mobile */
+@media(max-width:850px){
+  .marquee{
+    overflow:hidden!important;
+    touch-action:pan-y;
+    -webkit-overflow-scrolling:auto;
+    cursor:grab;
+  }
+  .marquee:active{cursor:grabbing}
+  .marquee .track,.marquee.reverse .track{
+    animation:none!important;
+    will-change:transform;
+    transform:translate3d(0,0,0);
+    backface-visibility:hidden;
+  }
+  .marquee .review{flex:0 0 auto}
+}

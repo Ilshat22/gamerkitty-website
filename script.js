@@ -40,44 +40,89 @@ document.querySelector('#guaranteeFooterBtn').onclick=showGuarantee;
 document.querySelector('#privacyBtn').onclick=()=>{body.innerHTML=`<div class="eyebrow">PRIVACY</div><h3>Privacy — Launch Draft</h3><p>If you request the free Starter Pack, your email address is submitted through EmailOctopus for delivery of the Starter Pack and related Gamer Kitty follow-up emails. You can unsubscribe using the link included in those emails.</p><p class="legal-note">This is still a launch draft, not a complete privacy policy. Before public launch, add your privacy contact details, retention information, and any other disclosures required for the way the site is actually operated.</p>`;modal.showModal()};
 window.addEventListener('mousemove',e=>{if(innerWidth<850)return;const art=document.querySelector('.hero-art img');const x=(e.clientX/innerWidth-.5)*10,y=(e.clientY/innerHeight-.5)*7;art.style.transform=`translate(${x}px,${y}px)`});
 
-// V6.3: on mobile, reviews keep moving automatically, pause while the visitor
-// swipes/drags them, then resume a moment after interaction ends.
-(function initMobileReviewMarquees(){
+// V6.5 — smooth mobile review marquees.
+// Uses requestAnimationFrame + GPU transforms instead of continuously changing
+// scrollLeft. Dragging pauses the marquee; it resumes smoothly from the exact
+// dragged position after a short delay.
+(function initSmoothMobileReviewMarquees(){
   if(!window.matchMedia('(max-width: 850px)').matches) return;
-  document.querySelectorAll('.marquee').forEach((marquee,index)=>{
-    let paused=false;
-    let resumeTimer;
-    let last=performance.now();
-    const direction=marquee.classList.contains('reverse') ? -1 : 1;
-    const speed=22; // pixels per second
-    const pause=()=>{paused=true;clearTimeout(resumeTimer)};
-    const resumeSoon=()=>{clearTimeout(resumeTimer);resumeTimer=setTimeout(()=>{paused=false;last=performance.now()},900)};
-    marquee.addEventListener('touchstart',pause,{passive:true});
-    marquee.addEventListener('touchend',resumeSoon,{passive:true});
-    marquee.addEventListener('touchcancel',resumeSoon,{passive:true});
-    marquee.addEventListener('pointerdown',pause,{passive:true});
-    marquee.addEventListener('pointerup',resumeSoon,{passive:true});
-    marquee.addEventListener('pointercancel',resumeSoon,{passive:true});
+
+  document.querySelectorAll('.marquee').forEach((marquee)=>{
     const track=marquee.querySelector('.track');
-    // Keep our own fractional position. Some mobile browsers round scrollLeft,
-    // which could leave the first (left-moving) row stuck at zero.
-    let pos=0;
-    requestAnimationFrame(()=>{
-      const half=track.scrollWidth/2;
-      pos=direction<0 ? Math.max(1,half) : 1;
-      marquee.scrollLeft=pos;
+    if(!track) return;
+
+    const movesRight=marquee.classList.contains('reverse');
+    const speed=20; // px/sec — deliberately calm and premium
+    let half=0;
+    let x=0;
+    let paused=false;
+    let dragging=false;
+    let lastPointerX=0;
+    let resumeTimer=null;
+    let lastTime=performance.now();
+
+    const wrap=()=>{
+      if(!half) return;
+      while(x <= -half) x += half;
+      while(x > 0) x -= half;
+    };
+    const render=()=>{
+      track.style.transform=`translate3d(${x}px,0,0)`;
+    };
+    const measure=()=>{
+      half=track.scrollWidth/2;
+      // Left-moving row begins at the first copy; right-moving row begins at
+      // the second copy so both directions loop seamlessly.
+      if(!Number.isFinite(x) || x===0) x=movesRight ? -half : 0;
+      wrap(); render();
+    };
+
+    const pause=()=>{
+      paused=true;
+      clearTimeout(resumeTimer);
+    };
+    const resumeSoon=()=>{
+      clearTimeout(resumeTimer);
+      resumeTimer=setTimeout(()=>{
+        paused=false;
+        lastTime=performance.now();
+      },800);
+    };
+
+    marquee.addEventListener('pointerdown',(e)=>{
+      dragging=true;
+      lastPointerX=e.clientX;
+      pause();
+      if(marquee.setPointerCapture) marquee.setPointerCapture(e.pointerId);
     });
+    marquee.addEventListener('pointermove',(e)=>{
+      if(!dragging) return;
+      const dx=e.clientX-lastPointerX;
+      lastPointerX=e.clientX;
+      x+=dx;
+      wrap(); render();
+    });
+    const endDrag=(e)=>{
+      if(!dragging) return;
+      dragging=false;
+      if(marquee.releasePointerCapture){
+        try{marquee.releasePointerCapture(e.pointerId)}catch(_){ }
+      }
+      resumeSoon();
+    };
+    marquee.addEventListener('pointerup',endDrag);
+    marquee.addEventListener('pointercancel',endDrag);
+
+    // Re-measure after fonts/layout settle and on orientation changes.
+    requestAnimationFrame(()=>{measure();requestAnimationFrame(measure)});
+    window.addEventListener('resize',measure,{passive:true});
+
     function tick(now){
-      const dt=Math.min((now-last)/1000,.05); last=now;
-      if(!paused && track){
-        const half=track.scrollWidth/2;
-        pos += direction*speed*dt;
-        if(direction>0 && pos>=half) pos-=half;
-        if(direction<0 && pos<=1) pos+=half;
-        marquee.scrollLeft=pos;
-      } else if(paused) {
-        // If the visitor swipes manually, resume from their new position.
-        pos=marquee.scrollLeft;
+      const dt=Math.min((now-lastTime)/1000,.05);
+      lastTime=now;
+      if(!paused && !dragging && half){
+        x += (movesRight ? 1 : -1)*speed*dt;
+        wrap(); render();
       }
       requestAnimationFrame(tick);
     }
