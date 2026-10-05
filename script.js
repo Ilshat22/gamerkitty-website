@@ -40,10 +40,9 @@ document.querySelector('#guaranteeFooterBtn').onclick=showGuarantee;
 document.querySelector('#privacyBtn').onclick=()=>{body.innerHTML=`<div class="eyebrow">PRIVACY</div><h3>Privacy — Launch Draft</h3><p>If you request the free Starter Pack, your email address is submitted through EmailOctopus for delivery of the Starter Pack and related Gamer Kitty follow-up emails. You can unsubscribe using the link included in those emails.</p><p class="legal-note">This is still a launch draft, not a complete privacy policy. Before public launch, add your privacy contact details, retention information, and any other disclosures required for the way the site is actually operated.</p>`;modal.showModal()};
 window.addEventListener('mousemove',e=>{if(innerWidth<850)return;const art=document.querySelector('.hero-art img');const x=(e.clientX/innerWidth-.5)*10,y=(e.clientY/innerHeight-.5)*7;art.style.transform=`translate(${x}px,${y}px)`});
 
-// V6.5 — smooth mobile review marquees.
-// Uses requestAnimationFrame + GPU transforms instead of continuously changing
-// scrollLeft. Dragging pauses the marquee; it resumes smoothly from the exact
-// dragged position after a short delay.
+// V6.6 — iOS-safe smooth review marquees.
+// Auto animation uses requestAnimationFrame; manual swipe uses native touch events
+// (with pointer/mouse fallback) so Safari can drag the transformed track reliably.
 (function initSmoothMobileReviewMarquees(){
   if(!window.matchMedia('(max-width: 850px)').matches) return;
 
@@ -52,76 +51,54 @@ window.addEventListener('mousemove',e=>{if(innerWidth<850)return;const art=docum
     if(!track) return;
 
     const movesRight=marquee.classList.contains('reverse');
-    const speed=20; // px/sec — deliberately calm and premium
-    let half=0;
-    let x=0;
-    let paused=false;
-    let dragging=false;
-    let lastPointerX=0;
-    let resumeTimer=null;
-    let lastTime=performance.now();
+    const speed=18;
+    let half=0, x=0, lastTime=performance.now();
+    let dragging=false, lastX=0, resumeAt=0;
 
-    const wrap=()=>{
-      if(!half) return;
-      while(x <= -half) x += half;
-      while(x > 0) x -= half;
-    };
-    const render=()=>{
-      track.style.transform=`translate3d(${x}px,0,0)`;
-    };
-    const measure=()=>{
+    function measure(){
       half=track.scrollWidth/2;
-      // Left-moving row begins at the first copy; right-moving row begins at
-      // the second copy so both directions loop seamlessly.
-      if(!Number.isFinite(x) || x===0) x=movesRight ? -half : 0;
+      if(movesRight && x===0 && half) x=-half;
       wrap(); render();
-    };
-
-    const pause=()=>{
-      paused=true;
-      clearTimeout(resumeTimer);
-    };
-    const resumeSoon=()=>{
-      clearTimeout(resumeTimer);
-      resumeTimer=setTimeout(()=>{
-        paused=false;
-        lastTime=performance.now();
-      },800);
-    };
-
-    marquee.addEventListener('pointerdown',(e)=>{
-      dragging=true;
-      lastPointerX=e.clientX;
-      pause();
-      if(marquee.setPointerCapture) marquee.setPointerCapture(e.pointerId);
-    });
-    marquee.addEventListener('pointermove',(e)=>{
+    }
+    function wrap(){
+      if(!half) return;
+      while(x<=-half) x+=half;
+      while(x>0) x-=half;
+    }
+    function render(){ track.style.transform=`translate3d(${x}px,0,0)`; }
+    function begin(clientX){
+      dragging=true; lastX=clientX; resumeAt=Infinity;
+    }
+    function move(clientX){
       if(!dragging) return;
-      const dx=e.clientX-lastPointerX;
-      lastPointerX=e.clientX;
-      x+=dx;
-      wrap(); render();
-    });
-    const endDrag=(e)=>{
+      x += clientX-lastX; lastX=clientX; wrap(); render();
+    }
+    function end(){
       if(!dragging) return;
-      dragging=false;
-      if(marquee.releasePointerCapture){
-        try{marquee.releasePointerCapture(e.pointerId)}catch(_){ }
-      }
-      resumeSoon();
-    };
-    marquee.addEventListener('pointerup',endDrag);
-    marquee.addEventListener('pointercancel',endDrag);
+      dragging=false; resumeAt=performance.now()+800; lastTime=performance.now();
+    }
 
-    // Re-measure after fonts/layout settle and on orientation changes.
-    requestAnimationFrame(()=>{measure();requestAnimationFrame(measure)});
+    marquee.addEventListener('touchstart',e=>begin(e.touches[0].clientX),{passive:true});
+    marquee.addEventListener('touchmove',e=>{
+      if(!dragging) return;
+      const dx=Math.abs(e.touches[0].clientX-lastX);
+      if(dx>1) e.preventDefault();
+      move(e.touches[0].clientX);
+    },{passive:false});
+    marquee.addEventListener('touchend',end,{passive:true});
+    marquee.addEventListener('touchcancel',end,{passive:true});
+
+    marquee.addEventListener('mousedown',e=>{e.preventDefault();begin(e.clientX)});
+    window.addEventListener('mousemove',e=>move(e.clientX));
+    window.addEventListener('mouseup',end);
+
+    requestAnimationFrame(()=>requestAnimationFrame(measure));
     window.addEventListener('resize',measure,{passive:true});
 
     function tick(now){
-      const dt=Math.min((now-lastTime)/1000,.05);
-      lastTime=now;
-      if(!paused && !dragging && half){
-        x += (movesRight ? 1 : -1)*speed*dt;
+      const dt=Math.min((now-lastTime)/1000,.05); lastTime=now;
+      if(!dragging && now>=resumeAt && half){
+        x += (movesRight?1:-1)*speed*dt;
         wrap(); render();
       }
       requestAnimationFrame(tick);

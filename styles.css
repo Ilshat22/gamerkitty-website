@@ -64,11 +64,12 @@ dialog h3{font-size:34px;letter-spacing:-.04em;margin:0 0 12px}dialog .modal-lea
 }
 
 
-/* V6.5 — smooth GPU review marquees on mobile */
+/* V6.6 — iOS-safe smooth review marquees on mobile */
 @media(max-width:850px){
   .marquee{
     overflow:hidden!important;
     touch-action:pan-y;
+    overscroll-behavior-x:contain;
     -webkit-overflow-scrolling:auto;
     cursor:grab;
   }
